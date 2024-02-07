@@ -1,15 +1,15 @@
 import bcrypt from 'bcrypt';
-import mysql from 'mysql';
 
-import { ENV } from '../env';
+import { getDbConnection } from '../db/getDbConnection';
 
-const connection = mysql.createConnection({
-    host: ENV.DATABASE_HOST,
-    port: parseInt(ENV.DATABASE_PORT, 10),
-    user: ENV.DATABASE_USER,
-    password: ENV.DATABASE_PASSWORD,
-    database: ENV.DATABASE_NAME,
-});
+const connection = getDbConnection();
+
+type userData = {
+    name: string;
+    password: string;
+    mail: string;
+    balance: number;
+};
 
 export const importUserRoutes = (app: any) => {
     app.route('/users')
@@ -25,12 +25,7 @@ export const importUserRoutes = (app: any) => {
             });
         })
         .post((req, res) => {
-            const { name, password, mail, balance } = req.body as {
-                name: string;
-                password: string;
-                mail: string;
-                balance: number;
-            };
+            const { name, password, mail, balance } = req.body as userData;
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
@@ -68,12 +63,7 @@ export const importUserRoutes = (app: any) => {
             );
         })
         .put((req, res) => {
-            const { name, password, mail, balance } = req.body as {
-                name: string;
-                password: string;
-                mail: string;
-                balance: number;
-            };
+            const { name, password, mail, balance } = req.body as userData;
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
@@ -103,3 +93,11 @@ export const importUserRoutes = (app: any) => {
             );
         });
 };
+
+connection.end((err) => {
+    if (err) {
+        console.error('Error closing the database connection', err);
+        return;
+    }
+    console.log('🔒 Database connection closed');
+});
