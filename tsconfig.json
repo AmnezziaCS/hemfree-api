@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "target": "ES5",
+    "moduleResolution": "node",
+    "typeRoots": ["src/@types", "node_modules/@types"],
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "strict": false,
+    "allowUnusedLabels": false,
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"]
+}
