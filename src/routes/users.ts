@@ -10,13 +10,13 @@ const connection = mysql.createConnection({
     database: ENV.DATABASE_NAME,
 });
 
-export const importAccountsRoutes = (app: any) => {
-    app.route('/accounts')
+export const importUserRoutes = (app: any) => {
+    app.route('/users')
         .get((req, res) => {
-            connection.query('SELECT * FROM accounts', (err, results) => {
+            connection.query('SELECT * FROM users', (err, results) => {
                 if (err) {
                     res.status(500).send(
-                        'Error retrieving accounts from database',
+                        'Error retrieving users from database',
                     );
                     return;
                 }
@@ -24,74 +24,81 @@ export const importAccountsRoutes = (app: any) => {
             });
         })
         .post((req, res) => {
-            const { name, password, email, balance } = req.body as {
+            const { name, password, mail, balance } = req.body as {
                 name: string;
                 password: string;
-                email: string;
+                mail: string;
                 balance: number;
             };
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
             connection.query(
-                'INSERT INTO accounts (name, password, email, balance) VALUES (?, ?, ?, ?)',
-                [name, encryptedPassword, email, balance],
+                'INSERT INTO users (name, password, mail, balance, creation_date) VALUES (?, ?, ?, ?, NOW())',
+                [name, encryptedPassword, mail, balance],
                 (err) => {
                     if (err) {
-                        res.status(500).send('Error creating account');
+                        res.status(500).send('Error creating user');
                         return;
                     }
-                    res.send('Account created');
+                    res.send('User created');
                 },
             );
-            res.send('Account created');
         });
 
-    app.route('/accounts/:id')
+    app.route('/users/:id')
         .get((req, res) => {
             connection.query(
-                'SELECT * FROM accounts WHERE id = ?',
+                'SELECT * FROM users WHERE id = ?',
                 [req.params.id],
                 (err, results) => {
                     if (err) {
                         res.status(500).send(
-                            'Error retrieving account from database',
+                            'Error retrieving user from database',
                         );
                         return;
                     }
                     if (results.length === 0) {
-                        res.status(404).send('Account not found');
+                        res.status(404).send('User not found');
                         return;
                     }
                     res.send(results[0]);
                 },
             );
-            res.send('Account');
         })
         .put((req, res) => {
-            const { name, password, email, balance } = req.body as {
+            const { name, password, mail, balance } = req.body as {
                 name: string;
                 password: string;
-                email: string;
+                mail: string;
                 balance: number;
             };
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
             connection.query(
-                'UPDATE accounts SET name = ?, password = ?, email = ?, balance = ? WHERE id = ?',
-                [name, encryptedPassword, email, balance, req.params.id],
+                'UPDATE users SET name = ?, password = ?, mail = ?, balance = ? WHERE id = ?',
+                [name, encryptedPassword, mail, balance, req.params.id],
                 (err) => {
                     if (err) {
-                        res.status(500).send('Error updating account');
+                        res.status(500).send('Error updating user');
                         return;
                     }
-                    res.send('Account updated');
+                    res.send('User updated');
                 },
             );
-            res.send('Account updated');
         })
         .delete((req, res) => {
-            res.send('Account deleted');
+            connection.query(
+                'DELETE FROM users WHERE id = ?',
+                [req.params.id],
+                (err) => {
+                    if (err) {
+                        res.status(500).send('Error deleting user');
+                        return;
+                    }
+                    res.send('User deleted');
+                },
+            );
         });
 };
