@@ -2,7 +2,8 @@ import 'dotenv/config';
 import z from 'zod';
 
 const envSchema = z.object({
-    DATABASE_URL: z.string(),
+    DATABASE_HOST: z.string(),
+    DATABASE_PORT: z.string(),
     DATABASE_NAME: z.string(),
     DATABASE_USER: z.string(),
     DATABASE_PASSWORD: z.string(),
