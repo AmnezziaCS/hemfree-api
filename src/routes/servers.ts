@@ -1,11 +1,5 @@
 import sql from '../db/db.ts';
-
-type serverData = {
-    name: string;
-    price: number;
-    ip: string;
-    userId: number;
-};
+import { serverData } from '../types/models.ts';
 
 export const importServerRoutes = (app: any) => {
     app.route('/servers')
@@ -22,15 +16,17 @@ export const importServerRoutes = (app: any) => {
             const { name, price, ip, userId } = req.body as serverData;
 
             if (!name || !price || !ip || !userId) {
-                res.status(400).send('Missing fields');
+                res.status(400).send(
+                    `Missing fields: ${JSON.stringify(req.body)}`,
+                );
                 return;
             }
 
             sql`INSERT INTO servers (name, price, ip, user_id) VALUES (
-                ${name},
-                ${price},
-                ${ip},
-                ${userId}) RETURNING *`
+                    ${name},
+                    ${price},
+                    ${ip},
+                    ${userId})`
                 .then(() => {
                     res.send('Server created');
                 })
@@ -61,16 +57,13 @@ export const importServerRoutes = (app: any) => {
             const { name, price, ip, userId } = req.body as serverData;
 
             if (!name || !price || !ip || !userId) {
-                res.status(400).send('Missing fields');
+                res.status(400).send(
+                    `Missing fields: ${JSON.stringify(req.body)}`,
+                );
                 return;
             }
 
-            sql`UPDATE servers SET
-                name = ${name},
-                price = ${price},
-                ip = ${ip},
-                user_id = ${userId}
-                WHERE id = ${req.params.id}`
+            sql`UPDATE servers SET name = ${name}, price = ${price}, ip = ${ip}, user_id = ${userId} WHERE id = ${req.params.id}`
                 .then(() => {
                     res.send('Server updated');
                 })

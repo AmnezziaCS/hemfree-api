@@ -1,17 +1,11 @@
 import bcrypt from 'bcrypt';
 
 import sql from '../db/db.ts';
-
-type userData = {
-    name: string;
-    password: string;
-    mail: string;
-    balance: number;
-};
+import { userData } from '../types/models.ts';
 
 export const importUserRoutes = (app: any) => {
     app.route('/users')
-        .get(async (req, res) => {
+        .get((req, res) => {
             sql`SELECT * FROM users`
                 .then((users) => {
                     res.send(users);
@@ -24,18 +18,20 @@ export const importUserRoutes = (app: any) => {
             const { name, password, mail, balance } = req.body as userData;
 
             if (!name || !password || !mail || balance === undefined) {
-                res.status(400).send('Missing fields');
+                res.status(400).send(
+                    `Missing fields: ${JSON.stringify(req.body)}`,
+                );
                 return;
             }
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
             sql`INSERT INTO users (name, password, mail, balance, creation_date) VALUES (
-                ${name},
-                ${encryptedPassword},
-                ${mail},
-                ${balance},
-                NOW())`
+                    ${name},
+                    ${encryptedPassword},
+                    ${mail},
+                    ${balance},
+                    NOW())`
                 .then(() => {
                     res.send('User created');
                 })
@@ -63,18 +59,17 @@ export const importUserRoutes = (app: any) => {
                 });
         })
         .put((req, res) => {
-            const { name, password, mail, balance } = req.body as userData;
+            const { name, mail, balance } = req.body as userData;
 
-            if (!name || !password || !mail || balance === undefined) {
-                res.status(400).send('Missing fields');
+            if (!name || !mail || balance === undefined) {
+                res.status(400).send(
+                    `Missing fields: ${JSON.stringify(req.body)}`,
+                );
                 return;
             }
 
-            const encryptedPassword = bcrypt.hashSync(password, 10);
-
             sql`UPDATE users SET
                 name = ${name},
-                password = ${encryptedPassword},
                 mail = ${mail},
                 balance = ${balance}
                 WHERE id = ${req.params.id}`
@@ -82,9 +77,7 @@ export const importUserRoutes = (app: any) => {
                     res.send('User updated');
                 })
                 .catch(() => {
-                    res.status(500).send(
-                        `Error updating userId: ${req.params.id}`,
-                    );
+                    res.status(500).send('Error updating user');
                 });
         })
         .delete((req, res) => {
