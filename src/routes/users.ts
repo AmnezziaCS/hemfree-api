@@ -1,10 +1,12 @@
 import bcrypt from 'bcrypt';
 
-import sql from '../db/db.ts';
-import { userData } from '../types/models.ts';
+import sql from '../db.ts';
+import { authenticateToken } from '../jwt.ts';
+import { UserData } from '../types/models.ts';
 
 export const importUserRoutes = (app: any) => {
     app.route('/users')
+        .all(authenticateToken)
         .get((req, res) => {
             sql`SELECT * FROM users`
                 .then((users) => {
@@ -15,7 +17,7 @@ export const importUserRoutes = (app: any) => {
                 });
         })
         .post((req, res) => {
-            const { name, password, mail, balance } = req.body as userData;
+            const { name, password, mail, balance } = req.body as UserData;
 
             if (!name || !password || !mail || balance === undefined) {
                 res.status(400).send(
@@ -23,6 +25,19 @@ export const importUserRoutes = (app: any) => {
                 );
                 return;
             }
+
+            sql`SELECT * FROM users WHERE name = ${name}`
+                .then((users) => {
+                    if (users.length > 0) {
+                        res.status(409).send(`User ${name} already exists`);
+                        return;
+                    }
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error getting users with name: ${name}`,
+                    );
+                });
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
@@ -41,6 +56,7 @@ export const importUserRoutes = (app: any) => {
         });
 
     app.route('/users/:id')
+        .all(authenticateToken)
         .get((req, res) => {
             sql`SELECT * FROM users WHERE id = ${req.params.id}`
                 .then((users) => {
@@ -59,7 +75,7 @@ export const importUserRoutes = (app: any) => {
                 });
         })
         .put((req, res) => {
-            const { name, mail, balance } = req.body as userData;
+            const { name, mail, balance } = req.body as UserData;
 
             if (!name || !mail || balance === undefined) {
                 res.status(400).send(
@@ -67,6 +83,19 @@ export const importUserRoutes = (app: any) => {
                 );
                 return;
             }
+
+            sql`SELECT * FROM users WHERE name = ${name}`
+                .then((users) => {
+                    if (users.length > 0) {
+                        res.status(409).send(`User ${name} already exists`);
+                        return;
+                    }
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error getting users with name: ${name}`,
+                    );
+                });
 
             sql`UPDATE users SET
                 name = ${name},

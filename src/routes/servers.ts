@@ -1,8 +1,10 @@
-import sql from '../db/db.ts';
-import { serverData } from '../types/models.ts';
+import sql from '../db.ts';
+import { authenticateToken } from '../jwt.ts';
+import { ServerData } from '../types/models.ts';
 
 export const importServerRoutes = (app: any) => {
     app.route('/servers')
+        .all(authenticateToken)
         .get((req, res) => {
             sql`SELECT * FROM servers`
                 .then((servers) => {
@@ -13,7 +15,7 @@ export const importServerRoutes = (app: any) => {
                 });
         })
         .post((req, res) => {
-            const { name, price, ip, userId } = req.body as serverData;
+            const { name, price, ip, userId } = req.body as ServerData;
 
             if (!name || !price || !ip || !userId) {
                 res.status(400).send(
@@ -36,6 +38,7 @@ export const importServerRoutes = (app: any) => {
         });
 
     app.route('/servers/:id')
+        .all(authenticateToken)
         .get((req, res) => {
             sql`SELECT * FROM servers WHERE id = ${req.params.id}`
                 .then((servers) => {
@@ -54,7 +57,7 @@ export const importServerRoutes = (app: any) => {
                 });
         })
         .put((req, res) => {
-            const { name, price, ip, userId } = req.body as serverData;
+            const { name, price, ip, userId } = req.body as ServerData;
 
             if (!name || !price || !ip || !userId) {
                 res.status(400).send(

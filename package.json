@@ -23,9 +23,11 @@
     },
     "homepage": "https://github.com/amnezziaa/hemfree-api#readme",
     "dependencies": {
+        "@types/jsonwebtoken": "^9.0.5",
         "bcrypt": "^5.1.1",
         "dotenv": "^16.4.1",
         "express": "^4.18.2",
+        "jsonwebtoken": "^9.0.2",
         "postgres": "^3.4.3",
         "zod": "^3.22.4"
     },

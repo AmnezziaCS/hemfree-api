@@ -1,11 +1,11 @@
-export type userData = {
+export type UserData = {
     name: string;
     password: string;
     mail: string;
     balance: number;
 };
 
-export type serverData = {
+export type ServerData = {
     name: string;
     price: number;
     ip: string;

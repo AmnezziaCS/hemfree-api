@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS servers;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     mail VARCHAR(255) NOT NULL,
     balance INTEGER NOT NULL,

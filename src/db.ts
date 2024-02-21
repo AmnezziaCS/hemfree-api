@@ -1,6 +1,6 @@
 import postgres from 'postgres';
 
-import { ENV } from '../env';
+import { ENV } from './env';
 
 const sql = postgres({
     host: ENV.DATABASE_HOST,

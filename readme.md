@@ -13,3 +13,17 @@ Clone the repository and run the following commands:
 npm install
 npm run dev
 ```
+
+### Environment Variables
+
+The following environment variables are required:
+
+- `DATABASE_HOST`: The host of the database
+- `DATABASE_USER`: The user of the database
+- `DATABASE_PASSWORD`: The password of the database
+- `DATABASE_NAME`: The name of the database
+- `JWT_SECRET`: You can use this node code to generate it :
+
+```javascript
+require('crypto').randomBytes(64).toString('hex')
+```
