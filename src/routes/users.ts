@@ -10,13 +10,8 @@ type userData = {
 };
 
 export const importUserRoutes = (app: any) => {
-    app.use((next, req) => {
-        console.log(`🔊 Request received\n📡 ${req.method} ${req.url}`);
-        next();
-    });
-
     app.route('/users')
-        .get(async (res) => {
+        .get(async (req, res) => {
             sql`SELECT * FROM users`
                 .then((users) => {
                     res.send(users);

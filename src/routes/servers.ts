@@ -8,12 +8,8 @@ type serverData = {
 };
 
 export const importServerRoutes = (app: any) => {
-    app.use((next: any, req: any) => {
-        console.log(`🔊 Request received\n📡 ${req.method} ${req.url}`);
-        next();
-    });
     app.route('/servers')
-        .get((res) => {
+        .get((req, res) => {
             sql`SELECT * FROM servers`
                 .then((servers) => {
                     res.send(servers);
