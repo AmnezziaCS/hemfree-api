@@ -23,15 +23,20 @@ export const importUserRoutes = (app: any) => {
         .post((req, res) => {
             const { name, password, mail, balance } = req.body as userData;
 
+            if (!name || !password || !mail || !balance) {
+                res.status(400).send('Missing fields');
+                return;
+            }
+
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
             sql`INSERT INTO users (name, password, mail, balance, creation_date) VALUES (
                 ${name},
                 ${encryptedPassword},
                 ${mail},
-                ${balance}, NOW()) RETURNING *`
-                .then((result) => {
-                    res.body = result;
+                ${balance},
+                NOW())`
+                .then(() => {
                     res.send('User created');
                 })
                 .catch(() => {
@@ -59,6 +64,11 @@ export const importUserRoutes = (app: any) => {
         })
         .put((req, res) => {
             const { name, password, mail, balance } = req.body as userData;
+
+            if (!name || !password || !mail || !balance) {
+                res.status(400).send('Missing fields');
+                return;
+            }
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 

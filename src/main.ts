@@ -1,3 +1,4 @@
+import bodyParser from 'body-parser';
 import express from 'express';
 
 import { importAllRoutes } from './routes';
@@ -8,6 +9,7 @@ app.listen(3000, () => {
     console.log('🚀 Server started and running on port 3000');
 });
 
+app.use(bodyParser.json());
 app.use((req, res, next) => {
     console.log(`🔊 Request received\n📡 ${req.method} ${req.url}`);
     next();

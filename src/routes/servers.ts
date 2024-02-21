@@ -21,13 +21,17 @@ export const importServerRoutes = (app: any) => {
         .post((req, res) => {
             const { name, price, ip, userId } = req.body as serverData;
 
+            if (!name || !price || !ip || !userId) {
+                res.status(400).send('Missing fields');
+                return;
+            }
+
             sql`INSERT INTO servers (name, price, ip, user_id) VALUES (
                 ${name},
                 ${price},
                 ${ip},
                 ${userId}) RETURNING *`
-                .then((result) => {
-                    res.body = result;
+                .then(() => {
                     res.send('Server created');
                 })
                 .catch(() => {
@@ -55,6 +59,11 @@ export const importServerRoutes = (app: any) => {
         })
         .put((req, res) => {
             const { name, price, ip, userId } = req.body as serverData;
+
+            if (!name || !price || !ip || !userId) {
+                res.status(400).send('Missing fields');
+                return;
+            }
 
             sql`UPDATE servers SET
                 name = ${name},
