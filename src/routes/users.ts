@@ -23,7 +23,7 @@ export const importUserRoutes = (app: any) => {
         .post((req, res) => {
             const { name, password, mail, balance } = req.body as userData;
 
-            if (!name || !password || !mail || !balance) {
+            if (!name || !password || !mail || balance === undefined) {
                 res.status(400).send('Missing fields');
                 return;
             }
@@ -65,7 +65,7 @@ export const importUserRoutes = (app: any) => {
         .put((req, res) => {
             const { name, password, mail, balance } = req.body as userData;
 
-            if (!name || !password || !mail || !balance) {
+            if (!name || !password || !mail || balance === undefined) {
                 res.status(400).send('Missing fields');
                 return;
             }
@@ -83,7 +83,7 @@ export const importUserRoutes = (app: any) => {
                 })
                 .catch(() => {
                     res.status(500).send(
-                        `Error updating useId: ${req.params.id}`,
+                        `Error updating userId: ${req.params.id}`,
                     );
                 });
         })
