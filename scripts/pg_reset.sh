@@ -3,9 +3,10 @@
 echo "Resetting the database..."
 
 # Load environment variables from .env file
-export $(grep -v '^#' .env | xargs)
+source ../.env
 
 # Run the pg_reset.sql script on the database
-PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/sql/pg_reset.sql
+
+PGPASSWORD=$DATABASE_PASSWORD psql -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USER" -d "$DATABASE_NAME" -f ./sql/pg_reset.sql
 
 echo "Database reset complete."
