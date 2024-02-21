@@ -1,6 +1,4 @@
-import { getDbConnection } from '../db/getDbConnection';
-
-const connection = getDbConnection();
+import sql from '../db/db.ts';
 
 type serverData = {
     name: string;
@@ -10,88 +8,82 @@ type serverData = {
 };
 
 export const importServerRoutes = (app: any) => {
+    app.use((next: any, req: any) => {
+        console.log(`🔊 Request received\n📡 ${req.method} ${req.url}`);
+        next();
+    });
     app.route('/servers')
-        .get((req, res) => {
-            connection.query('SELECT * FROM servers', (err, results) => {
-                if (err) {
-                    res.status(500).send(
-                        'Error retrieving servers from database',
-                    );
-                    return;
-                }
-                res.send(results);
-            });
+        .get((res) => {
+            sql`SELECT * FROM servers`
+                .then((servers) => {
+                    res.send(servers);
+                })
+                .catch(() => {
+                    res.status(500).send('Error getting servers');
+                });
         })
         .post((req, res) => {
             const { name, price, ip, userId } = req.body as serverData;
 
-            connection.query(
-                'INSERT INTO servers (name, price, ip, user_id, purchase_date) VALUES (?, ?, ?, ?, NOW())',
-                [name, price, ip, userId],
-                (err) => {
-                    if (err) {
-                        res.status(500).send('Error creating server');
-                        return;
-                    }
+            sql`INSERT INTO servers (name, price, ip, user_id) VALUES (
+                ${name},
+                ${price},
+                ${ip},
+                ${userId}) RETURNING *`
+                .then((result) => {
+                    res.body = result;
                     res.send('Server created');
-                },
-            );
+                })
+                .catch(() => {
+                    res.status(500).send('Error creating server');
+                });
         });
 
     app.route('/servers/:id')
         .get((req, res) => {
-            connection.query(
-                'SELECT * FROM servers WHERE id = ?',
-                [req.params.id],
-                (err, results) => {
-                    if (err) {
-                        res.status(500).send(
-                            'Error retrieving server from database',
+            sql`SELECT * FROM servers WHERE id = ${req.params.id}`
+                .then((servers) => {
+                    if (servers.length === 0) {
+                        res.status(404).send(
+                            `Server at id ${req.params.id} not found`,
                         );
                         return;
                     }
-                    if (results.length === 0) {
-                        res.status(404).send('Server not found');
-                        return;
-                    }
-                    res.send(results[0]);
-                },
-            );
+                    res.send(servers[0]);
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error getting serverId: ${req.params.id}`,
+                    );
+                });
         })
         .put((req, res) => {
             const { name, price, ip, userId } = req.body as serverData;
 
-            connection.query(
-                'UPDATE servers SET name = ?, price = ?, ip = ?, user_id = ? WHERE id = ?',
-                [name, price, ip, userId, req.params.id],
-                (err) => {
-                    if (err) {
-                        res.status(500).send('Error updating server');
-                        return;
-                    }
+            sql`UPDATE servers SET
+                name = ${name},
+                price = ${price},
+                ip = ${ip},
+                user_id = ${userId}
+                WHERE id = ${req.params.id}`
+                .then(() => {
                     res.send('Server updated');
-                },
-            );
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error updating serverId: ${req.params.id}`,
+                    );
+                });
         })
         .delete((req, res) => {
-            connection.query(
-                'DELETE FROM servers WHERE id = ?',
-                [req.params.id],
-                (err) => {
-                    if (err) {
-                        res.status(500).send('Error deleting server');
-                        return;
-                    }
+            sql`DELETE FROM servers WHERE id = ${req.params.id}`
+                .then(() => {
                     res.send('Server deleted');
-                },
-            );
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error deleting serverId: ${req.params.id}`,
+                    );
+                });
         });
 };
-
-connection.end((err) => {
-    if (err) {
-        console.error('Error closing the database connection', err);
-        return;
-    }
-    console.log('🔒 Database connection closed');
-});

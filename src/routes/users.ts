@@ -1,8 +1,6 @@
 import bcrypt from 'bcrypt';
 
-import { getDbConnection } from '../db/getDbConnection';
-
-const connection = getDbConnection();
+import sql from '../db/db.ts';
 
 type userData = {
     name: string;
@@ -12,92 +10,87 @@ type userData = {
 };
 
 export const importUserRoutes = (app: any) => {
+    app.use((next, req) => {
+        console.log(`🔊 Request received\n📡 ${req.method} ${req.url}`);
+        next();
+    });
+
     app.route('/users')
-        .get((req, res) => {
-            connection.query('SELECT * FROM users', (err, results) => {
-                if (err) {
-                    res.status(500).send(
-                        'Error retrieving users from database',
-                    );
-                    return;
-                }
-                res.send(results);
-            });
+        .get(async (res) => {
+            sql`SELECT * FROM users`
+                .then((users) => {
+                    res.send(users);
+                })
+                .catch(() => {
+                    res.status(500).send('Error getting users');
+                });
         })
         .post((req, res) => {
             const { name, password, mail, balance } = req.body as userData;
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
-            connection.query(
-                'INSERT INTO users (name, password, mail, balance, creation_date) VALUES (?, ?, ?, ?, NOW())',
-                [name, encryptedPassword, mail, balance],
-                (err) => {
-                    if (err) {
-                        res.status(500).send('Error creating user');
-                        return;
-                    }
+            sql`INSERT INTO users (name, password, mail, balance, creation_date) VALUES (
+                ${name},
+                ${encryptedPassword},
+                ${mail},
+                ${balance}, NOW()) RETURNING *`
+                .then((result) => {
+                    res.body = result;
                     res.send('User created');
-                },
-            );
+                })
+                .catch(() => {
+                    res.status(500).send('Error creating user');
+                });
         });
 
     app.route('/users/:id')
         .get((req, res) => {
-            connection.query(
-                'SELECT * FROM users WHERE id = ?',
-                [req.params.id],
-                (err, results) => {
-                    if (err) {
-                        res.status(500).send(
-                            'Error retrieving user from database',
+            sql`SELECT * FROM users WHERE id = ${req.params.id}`
+                .then((users) => {
+                    if (users.length === 0) {
+                        res.status(404).send(
+                            `User at id ${req.params.id} not found`,
                         );
                         return;
                     }
-                    if (results.length === 0) {
-                        res.status(404).send('User not found');
-                        return;
-                    }
-                    res.send(results[0]);
-                },
-            );
+                    res.send(users[0]);
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error getting userId: ${req.params.id}`,
+                    );
+                });
         })
         .put((req, res) => {
             const { name, password, mail, balance } = req.body as userData;
 
             const encryptedPassword = bcrypt.hashSync(password, 10);
 
-            connection.query(
-                'UPDATE users SET name = ?, password = ?, mail = ?, balance = ? WHERE id = ?',
-                [name, encryptedPassword, mail, balance, req.params.id],
-                (err) => {
-                    if (err) {
-                        res.status(500).send('Error updating user');
-                        return;
-                    }
+            sql`UPDATE users SET
+                name = ${name},
+                password = ${encryptedPassword},
+                mail = ${mail},
+                balance = ${balance}
+                WHERE id = ${req.params.id}`
+                .then(() => {
                     res.send('User updated');
-                },
-            );
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error updating useId: ${req.params.id}`,
+                    );
+                });
         })
         .delete((req, res) => {
-            connection.query(
-                'DELETE FROM users WHERE id = ?',
-                [req.params.id],
-                (err) => {
-                    if (err) {
-                        res.status(500).send('Error deleting user');
-                        return;
-                    }
+            sql`DELETE FROM users WHERE id = ${req.params.id}`
+                .then(() => {
                     res.send('User deleted');
-                },
-            );
+                })
+                .catch(() => {
+                    res.status(500).send(
+                        `Error deleting userId: ${req.params.id}`,
+                    );
+                });
         });
 };
-
-connection.end((err) => {
-    if (err) {
-        console.error('Error closing the database connection', err);
-        return;
-    }
-    console.log('🔒 Database connection closed');
-});
